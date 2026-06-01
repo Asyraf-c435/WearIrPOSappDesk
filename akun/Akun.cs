@@ -6,7 +6,6 @@ namespace KasirWearIt
 {
     public partial class Akun : Form
     {
-        private string _usernameAktif;
 
      public Akun()
         {

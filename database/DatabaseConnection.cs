@@ -281,50 +281,54 @@ namespace KasirWearIt.Database
             return Query(sql, new MySqlParameter("@kw", "%" + keyword + "%"));
         }
         // Sisanya (SimpanTransaksi, LaporanHarian, RingkasanHarian) tetap aman...
-        public static int SimpanTransaksi(int idUser, decimal subtotal, decimal diskonPct, decimal totalAkhir, string metodeBayar, decimal uangBayar, decimal kembalian, (string kode, decimal harga, int qty, decimal sub)[] items)
+      public static int SimpanTransaksi(int idUser, decimal subtotal, decimal diskonPct, decimal totalAkhir, string metodeBayar, decimal uangBayar, decimal kembalian, (string kode, decimal harga, int qty, decimal sub)[] items)
+{
+    using var conn = new MySqlConnection(ConnectionString);
+    conn.Open();
+    using var trx = conn.BeginTransaction();
+    try
+    {
+        const string sqlHdr = @"
+            INSERT INTO transaksi_jual (id_user, subtotal, diskon_pct, total_akhir, metode_bayar, uang_bayar, kembalian)
+            VALUES (@uid, @sub, @dpct, @tot, @met, @bay, @kmb);
+            SELECT LAST_INSERT_ID();";
+        using var cmdHdr = new MySqlCommand(sqlHdr, conn, trx);
+        cmdHdr.Parameters.AddWithValue("@uid", idUser);
+        cmdHdr.Parameters.AddWithValue("@sub", subtotal);
+        cmdHdr.Parameters.AddWithValue("@dpct", diskonPct);
+        cmdHdr.Parameters.AddWithValue("@tot", totalAkhir);
+        cmdHdr.Parameters.AddWithValue("@met", metodeBayar);
+        cmdHdr.Parameters.AddWithValue("@bay", uangBayar);
+        cmdHdr.Parameters.AddWithValue("@kmb", kembalian);
+        int idTrans = Convert.ToInt32(cmdHdr.ExecuteScalar());
+
+        // Detail tanpa harga_satuan (karena tabel tidak punya kolom itu)
+        const string sqlDtl = "INSERT INTO detail_jual (id_transaksi, kode_produk, jumlah, subtotal) VALUES (@idt, @kp, @jml, @sub)";
+        const string sqlStok = "UPDATE produk SET stok = stok - @j WHERE kode_produk = @kp";
+
+        foreach (var item in items)
         {
-            using var conn = new MySqlConnection(ConnectionString);
-            conn.Open();
-            using var trx = conn.BeginTransaction();
-            try
-            {
-                const string sqlHdr = @"
-                    INSERT INTO transaksi_jual (id_user, subtotal, diskon_pct, total_akhir, metode_bayar, uang_bayar, kembalian)
-                    VALUES (@uid, @sub, @dpct, @tot, @met, @bay, @kmb);
-                    SELECT LAST_INSERT_ID();";
-                using var cmdHdr = new MySqlCommand(sqlHdr, conn, trx);
-                cmdHdr.Parameters.AddWithValue("@uid", idUser);
-                cmdHdr.Parameters.AddWithValue("@sub", subtotal);
-                cmdHdr.Parameters.AddWithValue("@dpct", diskonPct);
-                cmdHdr.Parameters.AddWithValue("@tot", totalAkhir);
-                cmdHdr.Parameters.AddWithValue("@met", metodeBayar);
-                cmdHdr.Parameters.AddWithValue("@bay", uangBayar);
-                cmdHdr.Parameters.AddWithValue("@kmb", kembalian);
-                int idTrans = Convert.ToInt32(cmdHdr.ExecuteScalar());
+            using var cmdDtl = new MySqlCommand(sqlDtl, conn, trx);
+            cmdDtl.Parameters.AddWithValue("@idt", idTrans);
+            cmdDtl.Parameters.AddWithValue("@kp",  item.kode);
+            cmdDtl.Parameters.AddWithValue("@jml", item.qty);
+            cmdDtl.Parameters.AddWithValue("@sub", item.sub);
+            cmdDtl.ExecuteNonQuery();
 
-                const string sqlDtl = "INSERT INTO detail_jual (id_transaksi, kode_produk, harga_satuan, jumlah, subtotal) VALUES (@idt, @kp, @hrg, @jml, @sub)";
-                const string sqlStok = "UPDATE produk SET stok = stok - @j WHERE kode_produk = @kp";
-
-                foreach (var item in items)
-                {
-                    using var cmdDtl = new MySqlCommand(sqlDtl, conn, trx);
-                    cmdDtl.Parameters.AddWithValue("@idt", idTrans);
-                    cmdDtl.Parameters.AddWithValue("@kp",  item.kode);
-                    cmdDtl.Parameters.AddWithValue("@hrg", item.harga);
-                    cmdDtl.Parameters.AddWithValue("@jml", item.qty);
-                    cmdDtl.Parameters.AddWithValue("@sub", item.sub);
-                    cmdDtl.ExecuteNonQuery();
-
-                    using var cmdStok = new MySqlCommand(sqlStok, conn, trx);
-                    cmdStok.Parameters.AddWithValue("@j",  item.qty);
-                    cmdStok.Parameters.AddWithValue("@kp", item.kode);
-                    cmdStok.ExecuteNonQuery();
-                }
-                trx.Commit();
-                return idTrans;
-            }
-            catch { trx.Rollback(); throw; }
+            using var cmdStok = new MySqlCommand(sqlStok, conn, trx);
+            cmdStok.Parameters.AddWithValue("@j",  item.qty);
+            cmdStok.Parameters.AddWithValue("@kp", item.kode);
+            cmdStok.ExecuteNonQuery();
         }
+        trx.Commit();
+        return idTrans;
+    }
+    catch
+    {
+        trx.Rollback();
+        throw;
+    }
+}
 
         public static DataTable LaporanHarian(DateTime dari, DateTime sampai)
         {
