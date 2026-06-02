@@ -49,71 +49,68 @@ namespace KasirWearIt
             MuatDataLaporan();
         }
 
-      private void MuatDataLaporan()
+     private void MuatDataLaporan()
+{
+    try
+    {
+        DateTime dari = dtpDari.Value.Date;
+        DateTime sampai = dtpSampai.Value.Date.AddDays(1).AddSeconds(-1);
+
+        // Pastikan Anda memanggil method yang BENAR dari DatabaseConnection
+        // Ganti "GetLaporanPenjualan" dengan nama method asli yang Anda buat di class DatabaseConnection
+        var dt = DatabaseConnection.GetLaporanPenjualan(dari, sampai);
+
+        dgvLaporan.Rows.Clear();
+        int totalPenjualanKotor = 0;
+        int totalDiskon = 0;
+
+        foreach (System.Data.DataRow row in dt.Rows)
         {
-            try
+            // 1. Ekstrak Tanggal Saja (Tahun, Bulan, Hari)
+            string tgl = Convert.ToDateTime(row["Tanggal"]).ToString("dd/MM/yyyy");
+
+            // 2. Ekstrak Jam Saja (Jam dan Menit), di-trim dari atribut yang ada
+            string jam = "";
+            if (dt.Columns.Contains("Jam") && row["Jam"] != DBNull.Value)
             {
-                DateTime dari = dtpDari.Value.Date;
-                DateTime sampai = dtpSampai.Value.Date.AddDays(1).AddSeconds(-1);
-
-                var dt = DatabaseConnection.LaporanHarian(dari, sampai);
-
-                dgvLaporan.Rows.Clear();
-                int totalPenjualanKotor = 0;
-                int totalDiskon = 0;
-
-                foreach (System.Data.DataRow row in dt.Rows)
-                {
-                    // 1. Ekstrak Tanggal Saja (Tahun, Bulan, Hari)
-                    string tgl = Convert.ToDateTime(row["Tanggal"]).ToString("dd/MM/yyyy");
-
-                    // 2. Ekstrak Jam Saja (Jam dan Menit), di-trim dari atribut yang ada
-                    string jam = "";
-                    if (dt.Columns.Contains("Jam") && row["Jam"] != DBNull.Value)
-                    {
-                        // Jika pakai MySQL TIME(), format bawaannya adalah TimeSpan
-                        if (row["Jam"] is TimeSpan ts) {
-                            jam = ts.ToString(@"hh\:mm");
-                        } else {
-                            string rawJam = row["Jam"].ToString() ?? "";
-                            jam = rawJam.Length >= 5 ? rawJam.Substring(0, 5) : rawJam;
-                        }
-                    }
-                    else
-                    {
-                        // Jika ngambil langsung dari datetime transaksi jual, trim ambil jamnya saja
-                        jam = Convert.ToDateTime(row["Tanggal"]).ToString("HH:mm");
-                    }
-
-                    string nama  = row["Produk"].ToString() ?? "";
-                    string qty   = row["Qty"].ToString() ?? "0";
-                    string sub   = Convert.ToInt32(row["Subtotal"]).ToString("N0");
-
-                    // Masukkan ke baris tabel (DataGrid)
-                    dgvLaporan.Rows.Add(tgl, jam, nama, qty, sub);
-
-                    // Kalkulasi Total
-                    totalPenjualanKotor += Convert.ToInt32(row["Subtotal"]);
-                    int sub1 = Convert.ToInt32(row["Subtotal"]);
-                    int dPct = Convert.ToInt32(row["DiskonPct"]);
-                    totalDiskon += (sub1 * dPct / 100);
+                // Jika pakai MySQL TIME(), format bawaannya adalah TimeSpan
+                if (row["Jam"] is TimeSpan ts) {
+                    jam = ts.ToString(@"hh\:mm");
+                } else {
+                    string rawJam = row["Jam"].ToString() ?? "";
+                    jam = rawJam.Length >= 5 ? rawJam.Substring(0, 5) : rawJam;
                 }
-
-                // Tampilkan ke textbox bawah
-                txtTotalPenjualan.Text = totalPenjualanKotor.ToString("N0");
-                txtTotalDiskon.Text = totalDiskon.ToString("N0");
-                txtTotalBersih.Text = (totalPenjualanKotor - totalDiskon).ToString("N0");
             }
-            catch (Exception ex)
+            else
             {
-                MessageBox.Show("Gagal memuat laporan: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                // Jika ngambil langsung dari datetime transaksi jual, trim ambil jamnya saja
+                jam = Convert.ToDateTime(row["Tanggal"]).ToString("HH:mm");
             }
+
+            string nama  = row["Produk"].ToString() ?? "";
+            string qty   = row["Qty"].ToString() ?? "0";
+            string sub   = Convert.ToInt32(row["Subtotal"]).ToString("N0");
+
+            // Masukkan ke baris tabel (DataGrid)
+            dgvLaporan.Rows.Add(tgl, jam, nama, qty, sub);
+
+            // Kalkulasi Total
+            totalPenjualanKotor += Convert.ToInt32(row["Subtotal"]);
+            int sub1 = Convert.ToInt32(row["Subtotal"]);
+            int dPct = Convert.ToInt32(row["DiskonPct"]);
+            totalDiskon += (sub1 * dPct / 100);
         }
 
-        private void btnTerapkan_Click(object? sender, EventArgs e)
-        {
-            MuatDataLaporan();
-        }
+        // Tampilkan ke textbox bawah
+        txtTotalPenjualan.Text = totalPenjualanKotor.ToString("N0");
+        txtTotalDiskon.Text = totalDiskon.ToString("N0");
+        txtTotalBersih.Text = (totalPenjualanKotor - totalDiskon).ToString("N0");
+    }
+    catch (Exception ex)
+    {
+        MessageBox.Show("Gagal memuat laporan: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+    }
+}
 
         private void btnPrint_Click(object? sender, EventArgs e)
         {

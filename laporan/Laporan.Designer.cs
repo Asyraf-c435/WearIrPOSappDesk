@@ -60,9 +60,7 @@ namespace KasirWearIt
             
             btnTerapkan = new Button() { Text = "Terapkan", Font = new Font("Segoe UI", 9, FontStyle.Bold), BackColor = Color.FromArgb(224, 158, 172), ForeColor = Color.White, Location = new Point(340, 88), Size = new Size(90, 30), FlatStyle = FlatStyle.Flat, Cursor = Cursors.Hand };
             btnTerapkan.FlatAppearance.BorderSize = 0;
-            
-            // Menghubungkan tombol terapkan ke event logika
-            btnTerapkan.Click += btnTerapkan_Click;
+   
 
             btnPrint = new Button() { Text = "🖨️ Cetak / Ekspor PDF", Font = new Font("Segoe UI", 10, FontStyle.Bold), BackColor = Color.White, Location = new Point(610, 85), Size = new Size(180, 35), FlatStyle = FlatStyle.Flat, Cursor = Cursors.Hand };
             btnPrint.Click += btnPrint_Click;

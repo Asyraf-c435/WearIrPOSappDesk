@@ -13,6 +13,8 @@ D:\tugasTasya\KasirWearIt\bin\Debug\net10.0-windows\MySql.Data.dll
 D:\tugasTasya\KasirWearIt\bin\Debug\net10.0-windows\MySqlConnector.dll
 D:\tugasTasya\KasirWearIt\bin\Debug\net10.0-windows\PdfSharp.Charting.dll
 D:\tugasTasya\KasirWearIt\bin\Debug\net10.0-windows\PdfSharp.dll
+D:\tugasTasya\KasirWearIt\bin\Debug\net10.0-windows\System.Data.SqlClient.dll
+D:\tugasTasya\KasirWearIt\bin\Debug\net10.0-windows\System.Windows.Forms.DataVisualization.dll
 D:\tugasTasya\KasirWearIt\bin\Debug\net10.0-windows\ZstdSharp.dll
 D:\tugasTasya\KasirWearIt\bin\Debug\net10.0-windows\de\PdfSharp.Charting.resources.dll
 D:\tugasTasya\KasirWearIt\bin\Debug\net10.0-windows\de\PdfSharp.resources.dll
@@ -21,6 +23,11 @@ D:\tugasTasya\KasirWearIt\bin\Debug\net10.0-windows\runtimes\win-x64\native\gssa
 D:\tugasTasya\KasirWearIt\bin\Debug\net10.0-windows\runtimes\win-x64\native\k5sprt64.dll
 D:\tugasTasya\KasirWearIt\bin\Debug\net10.0-windows\runtimes\win-x64\native\krb5_64.dll
 D:\tugasTasya\KasirWearIt\bin\Debug\net10.0-windows\runtimes\win-x64\native\krbcc64.dll
+D:\tugasTasya\KasirWearIt\bin\Debug\net10.0-windows\runtimes\win-arm64\native\sni.dll
+D:\tugasTasya\KasirWearIt\bin\Debug\net10.0-windows\runtimes\win-x64\native\sni.dll
+D:\tugasTasya\KasirWearIt\bin\Debug\net10.0-windows\runtimes\win-x86\native\sni.dll
+D:\tugasTasya\KasirWearIt\bin\Debug\net10.0-windows\runtimes\unix\lib\net8.0\System.Data.SqlClient.dll
+D:\tugasTasya\KasirWearIt\bin\Debug\net10.0-windows\runtimes\win\lib\net8.0\System.Data.SqlClient.dll
 D:\tugasTasya\KasirWearIt\obj\Debug\net10.0-windows\KasirWearIt.csproj.AssemblyReference.cache
 D:\tugasTasya\KasirWearIt\obj\Debug\net10.0-windows\KasirWearIt.GeneratedMSBuildEditorConfig.editorconfig
 D:\tugasTasya\KasirWearIt\obj\Debug\net10.0-windows\KasirWearIt.AssemblyInfoInputs.cache
