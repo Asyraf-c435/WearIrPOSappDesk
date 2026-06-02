@@ -1,4 +1,5 @@
 using System;
+using System.Data;        // <-- Tambahkan ini
 using System.Drawing;
 using System.Windows.Forms;
 using KasirWearIt.Database;
@@ -29,70 +30,97 @@ namespace KasirWearIt
             lblFooterNama.Text = $"👤 {nama}";
         }
 
-        private void MuatProdukDariDatabase(string keyword = "")
+     private void MuatProdukDariDatabase(string keyword = "")
+{
+    flpProducts.Controls.Clear();
+    try
+    {
+        int idOutlet = Session.IdOutlet;
+        if (idOutlet <= 0)
         {
-            flpProducts.Controls.Clear();
-            try
+            MessageBox.Show("Outlet tidak ditemukan. Silakan login ulang.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            return;
+        }
+
+        DataTable dt;
+        if (string.IsNullOrWhiteSpace(keyword) || keyword == "Cari nama barang di sini...")
+            dt = DatabaseConnection.AmbilProdukAktif(idOutlet);
+        else
+            dt = DatabaseConnection.SearchProduk(keyword, idOutlet);
+
+        if (dt != null && dt.Rows.Count > 0)
+        {
+            foreach (DataRow row in dt.Rows)
             {
-                System.Data.DataTable dt = null!;
+                string kodeProduk = row["kode_produk"].ToString() ?? "-";
+                string namaProduk = row["nama_produk"].ToString() ?? "Tanpa Nama";
+                decimal harga = Convert.ToDecimal(row["harga_jual"]);
+                int stok = Convert.ToInt32(row["stok"]);
 
-                if (string.IsNullOrWhiteSpace(keyword) || keyword == "Cari nama barang di sini...")
+                // Buat card produk
+                Panel pnlCard = new Panel()
                 {
-                    dt = DatabaseConnection.AmbilProdukAktif();
-                }
-                else
-                {
-                    dt = DatabaseConnection.SearchProduk(keyword);
-                }
+                    Size = new Size(135, 100),
+                    BackColor = Color.White,
+                    Margin = new Padding(8),
+                    Cursor = Cursors.Hand
+                };
+                pnlCard.Paint += (s, e) => ControlPaint.DrawBorder(e.Graphics, pnlCard.ClientRectangle, Color.DarkGray, ButtonBorderStyle.Solid);
 
-                if (dt != null && dt.Rows != null)
+                string labelNama = stok <= 0 ? $"[HABIS]\n{namaProduk}" : namaProduk;
+                Label lblNama = new Label()
                 {
-                    foreach (System.Data.DataRow databaseRow in dt.Rows)
+                    Text = labelNama,
+                    Font = new Font("Segoe UI", 9, FontStyle.Bold),
+                    ForeColor = stok <= 0 ? Color.Gray : Color.FromArgb(50, 50, 50),
+                    Location = new Point(5, 10),
+                    Size = new Size(125, 45),
+                    TextAlign = ContentAlignment.TopCenter,
+                    Cursor = Cursors.Hand
+                };
+                Label lblHarga = new Label()
+                {
+                    Text = $"Rp {harga:N0}",
+                    Font = new Font("Segoe UI", 9, FontStyle.Regular),
+                    ForeColor = Color.FromArgb(120, 60, 80),
+                    Location = new Point(5, 65),
+                    Size = new Size(125, 25),
+                    TextAlign = ContentAlignment.MiddleCenter,
+                    Cursor = Cursors.Hand
+                };
+
+                pnlCard.Controls.Add(lblNama);
+                pnlCard.Controls.Add(lblHarga);
+
+                // Event klik
+                string kProd = kodeProduk;
+                string nProd = namaProduk;
+                decimal hJual = harga;
+                int sToko = stok;
+
+                Action aksiKlik = () =>
+                {
+                    if (sToko <= 0)
                     {
-                        string kodeProduk = databaseRow["kode_produk"].ToString() ?? "-";
-                        string namaProduk = databaseRow["nama_produk"].ToString() ?? "Tanpa Nama";
-                        decimal harga = Convert.ToDecimal(databaseRow["harga_jual"]);
-                        int stok = Convert.ToInt32(databaseRow["stok"]);
-
-                        Panel pnlCard = new Panel() { Size = new Size(135, 100), BackColor = Color.White, Margin = new Padding(8), Cursor = Cursors.Hand };
-                        string tag = $"{namaProduk}|{harga}";
-                        pnlCard.Tag = tag;
-                        pnlCard.Paint += (s, e) => { ControlPaint.DrawBorder(e.Graphics, pnlCard.ClientRectangle, Color.DarkGray, ButtonBorderStyle.Solid); };
-
-                        string labelNama = stok <= 0 ? $"[HABIS]\n{namaProduk}" : namaProduk;
-                        Label lblNama = new Label() { Text = labelNama, Font = new Font("Segoe UI", 9, FontStyle.Bold), ForeColor = stok <= 0 ? Color.Gray : Color.FromArgb(50, 50, 50), Location = new Point(5, 10), Size = new Size(125, 45), TextAlign = ContentAlignment.TopCenter, Cursor = Cursors.Hand };
-                        Label lblHarga = new Label() { Text = $"Rp {harga:N0}", Font = new Font("Segoe UI", 9, FontStyle.Regular), ForeColor = Color.FromArgb(120, 60, 80), Location = new Point(5, 65), Size = new Size(125, 25), TextAlign = ContentAlignment.MiddleCenter, Cursor = Cursors.Hand };
-
-                        pnlCard.Controls.Add(lblNama);
-                        pnlCard.Controls.Add(lblHarga);
-
-                        string kProd = kodeProduk;
-                        string nProd = namaProduk;
-                        decimal hJual = harga;
-                        int sToko = stok;
-
-                        Action aksiKlikCard = () => {
-                            if (sToko <= 0)
-                            {
-                                MessageBox.Show($"Stok '{nProd}' sedang kosong!", "Info Stok", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                                return;
-                            }
-                            TambahAtauUpdateOrder(kProd, nProd, hJual);
-                        };
-
-                        pnlCard.Click += (s, e) => aksiKlikCard();
-                        lblNama.Click += (s, e) => aksiKlikCard();
-                        lblHarga.Click += (s, e) => aksiKlikCard();
-
-                        flpProducts.Controls.Add(pnlCard);
+                        MessageBox.Show($"Stok '{nProd}' sedang kosong!", "Info Stok", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        return;
                     }
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Gagal memuat produk pakaian: " + ex.Message, "Error Database", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    TambahAtauUpdateOrder(kProd, nProd, hJual);
+                };
+
+                pnlCard.Click += (s, e) => aksiKlik();
+                lblNama.Click += (s, e) => aksiKlik();
+                lblHarga.Click += (s, e) => aksiKlik();
+
+                flpProducts.Controls.Add(pnlCard);
             }
         }
+    }
+    catch (Exception ex)
+    {
+        MessageBox.Show("Gagal memuat produk: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+    }
+}
 
         private void txtSearch_TextChanged(object? sender, EventArgs e)
         {

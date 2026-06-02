@@ -81,13 +81,13 @@ namespace KasirWearIt
                 foreach (DataRow row in dt.Rows)
                 {
                     int idx = dgvProduk.Rows.Add(
-                        row["kode_produk"].ToString(),
-                        row["nama_produk"].ToString(),
-                        row["qty_sistem"].ToString(),
-                        Convert.ToDecimal(row["harga_jual"]).ToString("N0"),
-                        "✏️ Edit",
-                        "🗑️ Hapus"
-                    );
+    row["kode_produk"]?.ToString() ?? "",
+    row["nama_produk"]?.ToString() ?? "",
+    row["qty_sistem"]?.ToString() ?? "0",
+    Convert.ToDecimal(row["harga_jual"]).ToString("N0"),
+    "✏️ Edit",
+    "🗑️ Hapus"
+);
                     dgvProduk.Rows[idx].Tag = row["kode_produk"].ToString();
                 }
             }

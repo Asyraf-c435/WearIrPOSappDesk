@@ -98,7 +98,7 @@ namespace KasirWearIt.Database
             {
                 string sql = "SELECT id_user FROM user WHERE username = @user AND password = @pass AND aktif = 1 LIMIT 1";
                 var result = Scalar(sql, new MySqlParameter("@user", username), new MySqlParameter("@pass", password));
-                return result != null;
+               return result != null && result != DBNull.Value;
             }
             catch (Exception ex)
             {
@@ -167,10 +167,32 @@ namespace KasirWearIt.Database
         }
 
         // Produk aktif
-        public static DataTable AmbilProdukAktif()
-        {
-            return Query("SELECT kode_produk, nama_produk, harga_jual, stok FROM produk ORDER BY nama_produk");
-        }
+     // Hapus method AmbilProdukAktif() yang lama, ganti dengan ini:
+public static DataTable AmbilProdukAktif(int idOutlet)
+{
+    string sql = @"
+        SELECT p.kode_produk, p.nama_produk, p.harga_jual,
+               COALESCE(s.qty_sistem, 0) AS stok
+        FROM produk p
+        LEFT JOIN stok s ON p.kode_produk = s.kode_produk AND s.id_outlet = @outlet
+        ORDER BY p.nama_produk";
+    return Query(sql, new MySqlParameter("@outlet", idOutlet));
+}
+
+// Hapus method SearchProduk(string keyword) yang lama, ganti dengan ini:
+public static DataTable SearchProduk(string keyword, int idOutlet)
+{
+    string sql = @"
+        SELECT p.kode_produk, p.nama_produk, p.harga_jual,
+               COALESCE(s.qty_sistem, 0) AS stok
+        FROM produk p
+        LEFT JOIN stok s ON p.kode_produk = s.kode_produk AND s.id_outlet = @outlet
+        WHERE (p.nama_produk LIKE @kw OR p.kode_produk LIKE @kw)
+        ORDER BY p.nama_produk";
+    return Query(sql,
+        new MySqlParameter("@outlet", idOutlet),
+        new MySqlParameter("@kw", "%" + keyword + "%"));
+}
 
         public static DataTable SearchProduk(string keyword)
         {

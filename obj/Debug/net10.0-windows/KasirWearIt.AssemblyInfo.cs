@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("KasirWearIt")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+5ac290309effc5c7b2c05582ff7612454f5971f7")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+97abca22ac239d09c7eadf24560f824db68d927a")]
 [assembly: System.Reflection.AssemblyProductAttribute("KasirWearIt")]
 [assembly: System.Reflection.AssemblyTitleAttribute("KasirWearIt")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
